@@ -16,15 +16,20 @@
     "@prisma/client": "^6.5.0",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
+    "file-saver": "^2.0.5",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "next": "15.2.2",
     "next-auth": "^4.24.11",
     "prisma": "^6.5.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/bcrypt": "^5.0.2",
+    "@types/file-saver": "^2.0.7",
     "@types/node": "^20.17.24",
     "@types/react": "^19",
     "@types/react-dom": "^19",

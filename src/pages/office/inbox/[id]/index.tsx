@@ -8,6 +8,10 @@ import {
   Button,
   Divider,
 } from "@mui/material";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const InquiryDetailPage = () => {
   const router = useRouter();
@@ -25,6 +29,62 @@ const InquiryDetailPage = () => {
         .catch((err) => console.error("Error loading inquiry:", err));
     }
   }, [id]);
+
+  const handleExportExcel = () => {
+    if (!inquiry) return;
+
+    const exportData = [
+      {
+        Name: inquiry.name,
+        Email: inquiry.email,
+        Country: inquiry.country,
+        Company: inquiry.company,
+        Address: inquiry.address,
+        Title: inquiry.title,
+        Job: inquiry.job,
+        Message: inquiry.message,
+        SubmittedAt: new Date(inquiry.createdAt).toLocaleString(),
+      },
+    ];
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Inquiry");
+
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(blob, `inquiry-${inquiry.id}.xlsx`);
+  };
+
+  const handleExportPDF = () => {
+    if (!inquiry) return;
+
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text("Inquiry Details", 14, 20);
+
+    autoTable(doc, {
+      startY: 30,
+      head: [["Field", "Value"]],
+      body: [
+        ["Name", inquiry.name],
+        ["Email", inquiry.email],
+        ["Country", inquiry.country],
+        ["Company", inquiry.company],
+        ["Address", inquiry.address],
+        ["Title", inquiry.title],
+        ["Job", inquiry.job],
+        ["Message", inquiry.message],
+        ["Submitted At", new Date(inquiry.createdAt).toLocaleString()],
+      ],
+      styles: {
+        cellPadding: 2,
+        fontSize: 10,
+      },
+    });
+
+    doc.save(`inquiry-${inquiry.id}.pdf`);
+  };
 
   if (!inquiry) {
     return (
@@ -45,9 +105,17 @@ const InquiryDetailPage = () => {
         <Typography variant="h5" fontWeight={700}>
           Inquiry Details
         </Typography>
-        <Button variant="outlined" onClick={() => router.push("/office/inbox")}>
-          Back to Inbox
-        </Button>
+        <Box display="flex" gap={2} flexWrap="wrap">
+          <Button variant="outlined" onClick={() => router.push("/office/inbox")}>
+            Back to Inbox
+          </Button>
+          <Button variant="contained" onClick={handleExportExcel}>
+            Export to Excel
+          </Button>
+          <Button variant="contained" color="secondary" onClick={handleExportPDF}>
+            Export to PDF
+          </Button>
+        </Box>
       </Box>
 
       <Paper
@@ -105,7 +173,6 @@ const InquiryDetailPage = () => {
   );
 };
 
-// 🧩 Reusable Dashboard-style Card Field
 const CardField = ({
   label,
   value,
