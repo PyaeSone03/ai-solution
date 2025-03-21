@@ -25,6 +25,7 @@ import EditIcon from "@mui/icons-material/Edit";
 
 const ManagementPage = () => {
   const router = useRouter();
+
   const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
   const [users, setUsers] = useState<
     {
@@ -41,12 +42,17 @@ const ManagementPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [roleId, setRoleId] = useState("");
+
   const [isAdmin, setIsAdmin] = useState(false);
+  const [noPermission, setNoPermission] = useState(false);
 
   useEffect(() => {
     const storedRoleId = localStorage.getItem("roleID");
-    if (!storedRoleId || storedRoleId !== "admin") {
-      router.push("/front/login");
+    if (storedRoleId !== "admin") {
+      setNoPermission(true);
+      setTimeout(() => {
+        router.push("/office");
+      }, 3000);
     } else {
       setIsAdmin(true);
     }
@@ -54,6 +60,7 @@ const ManagementPage = () => {
 
   useEffect(() => {
     if (!isAdmin) return;
+
     const fetchRoles = async () => {
       try {
         const response = await fetch("/api/roles");
@@ -77,6 +84,19 @@ const ManagementPage = () => {
     fetchRoles();
     fetchUsers();
   }, [isAdmin]);
+
+  if (noPermission) {
+    return (
+      <Container maxWidth="sm" sx={{ mt: 8, textAlign: "center" }}>
+        <Typography variant="h6" color="error">
+          You don't have permission to access that page.
+        </Typography>
+        <Typography variant="body2" sx={{ mt: 2 }}>
+          Redirecting to the office page...
+        </Typography>
+      </Container>
+    );
+  }
 
   if (!isAdmin) return null;
 
@@ -162,6 +182,7 @@ const ManagementPage = () => {
       <Typography variant="h5" sx={{ my: 3 }}>
         User Management
       </Typography>
+
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid item xs={4}>
           <Paper sx={{ padding: 2, textAlign: "center" }}>
@@ -182,9 +203,15 @@ const ManagementPage = () => {
           </Paper>
         </Grid>
       </Grid>
-      <Button variant="contained" color="primary" onClick={() => handleOpenDialog()}>
+
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => handleOpenDialog()}
+      >
         Create Account
       </Button>
+
       <TableContainer component={Paper} sx={{ mt: 3 }}>
         <Table>
           <TableHead>
@@ -204,10 +231,16 @@ const ManagementPage = () => {
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.role.name}</TableCell>
                 <TableCell>
-                  <IconButton color="primary" onClick={() => handleOpenDialog(user)}>
+                  <IconButton
+                    color="primary"
+                    onClick={() => handleOpenDialog(user)}
+                  >
                     <EditIcon />
                   </IconButton>
-                  <IconButton color="error" onClick={() => handleDeleteUser(user.id)}>
+                  <IconButton
+                    color="error"
+                    onClick={() => handleDeleteUser(user.id)}
+                  >
                     <Delete />
                   </IconButton>
                 </TableCell>
@@ -216,6 +249,158 @@ const ManagementPage = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Dialog for create/update */}
+      <Dialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>{editMode ? "Edit User" : "Create User"}</DialogTitle>
+        <DialogContent
+          sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}
+        >
+          <TextField
+            label="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            fullWidth
+            sx={{
+              backgroundColor: "#f9f9f9",
+              borderRadius: 1,
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "#ccc",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#1976d2",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#1976d2",
+                  borderWidth: "2px",
+                },
+              },
+              "& .MuiInputLabel-root": {
+                color: "#666",
+              },
+              "& .MuiInputLabel-root.Mui-focused": {
+                color: "#1976d2",
+              },
+              input: {
+                color: "#333",
+              },
+            }}
+          />
+          <TextField
+            label="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            fullWidth
+            sx={{
+              backgroundColor: "#f9f9f9",
+              borderRadius: 1,
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "#ccc",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#1976d2",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#1976d2",
+                  borderWidth: "2px",
+                },
+              },
+              "& .MuiInputLabel-root": {
+                color: "#666",
+              },
+              "& .MuiInputLabel-root.Mui-focused": {
+                color: "#1976d2",
+              },
+              input: {
+                color: "#333",
+              },
+            }}
+          />
+          <TextField
+            label="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            fullWidth
+            type="password"
+            sx={{
+              backgroundColor: "#f9f9f9",
+              borderRadius: 1,
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "#ccc",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#1976d2",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#1976d2",
+                  borderWidth: "2px",
+                },
+              },
+              "& .MuiInputLabel-root": {
+                color: "#666",
+              },
+              "& .MuiInputLabel-root.Mui-focused": {
+                color: "#1976d2",
+              },
+              input: {
+                color: "#333",
+              },
+            }}
+          />
+          <TextField
+            label="Role"
+            select
+            value={roleId}
+            onChange={(e) => setRoleId(e.target.value)}
+            fullWidth
+            sx={{
+              backgroundColor: "#f9f9f9",
+              borderRadius: 1,
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "#ccc",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#1976d2",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#1976d2",
+                  borderWidth: "2px",
+                },
+              },
+              "& .MuiInputLabel-root": {
+                color: "#666",
+              },
+              "& .MuiInputLabel-root.Mui-focused": {
+                color: "#1976d2",
+              },
+              input: {
+                color: "#333",
+              },
+            }}
+          >
+            {roles.map((role) => (
+              <MenuItem key={role.id} value={role.id}>
+                {role.name}
+              </MenuItem>
+            ))}
+          </TextField>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleSaveUser} variant="contained" color="primary">
+            {editMode ? "Update" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

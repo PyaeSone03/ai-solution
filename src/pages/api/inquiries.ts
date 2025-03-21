@@ -9,6 +9,55 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    const { id, count } = req.query;
+
+    // 👉 Return counts for dashboard
+    if (count === "true") {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+      const [total, thisMonth, thisYear] = await Promise.all([
+        prisma.inquiry.count(),
+        prisma.inquiry.count({
+          where: {
+            createdAt: {
+              gte: startOfMonth,
+              lte: now,
+            },
+          },
+        }),
+        prisma.inquiry.count({
+          where: {
+            createdAt: {
+              gte: startOfYear,
+              lte: now,
+            },
+          },
+        }),
+      ]);
+
+      return res.status(200).json({
+        total,
+        thisMonth,
+        thisYear,
+      });
+    }
+
+    // 👉 Return single inquiry by ID
+    if (id) {
+      const inquiry = await prisma.inquiry.findUnique({
+        where: { id: String(id) },
+      });
+
+      if (!inquiry) {
+        return res.status(404).json({ error: "Inquiry not found" });
+      }
+
+      return res.status(200).json({ inquiry });
+    }
+
+    // 👉 Return all inquiries
     const inquiries = await prisma.inquiry.findMany({
       orderBy: { createdAt: "desc" },
       select: {
@@ -24,9 +73,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         createdAt: true,
       },
     });
+
     return res.status(200).json({ inquiries });
   } catch (error) {
-    console.error("❌ Error fetching inquiries:", error);
+    console.error("❌ Error in inquiries API:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }
